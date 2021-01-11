@@ -5,11 +5,7 @@ import sys
 import logging
 import argparse
 from os import path, mkdir
-import aggregator as aggregator
-import generator as generator
-import evaluator as evaluator
-from navigator import Navigator
-
+from synthetic_data import runPipeline
 
 def main():
     """Executes pipeline according to config file and command line arguments.
@@ -80,40 +76,6 @@ def main():
         logging.exception(e)
 
 
-def runPipeline(config):
-    """Sets internal arguments from the config file and runs pipeline stages accordingly.
-
-    Args:
-        config: options from the json config file, else default values.
-    """
-    
-    if config['aggregate']:
-        aggregator.aggregate(config)
-    
-    if config['generate']:
-        generator.generate(config)
-
-    if config['evaluate']:
-        if not path.exists(config['sensitive_aggregates_path']):
-            logging.info(f'Missing sensitive aggregates; aggregating...')
-            aggregator.aggregate(config)
-        if not path.exists(config['synthetic_microdata_path']):
-            logging.info(f'Missing synthetic microdata; generating...')
-            generator.generate(config)
-        evaluator.evaluate(config)
-
-    if config['navigate']:
-        if not path.exists(config['sensitive_aggregates_path']):
-            logging.info(f'Missing sensitive aggregates; aggregating...')
-            aggregator.aggregate(config)
-        if not path.exists(config['synthetic_microdata_path']):
-            logging.info(f'Missing synthetic microdata; generating...')
-            generator.generate(config)
-            
-        navigator = Navigator(config)
-        navigator.process()
-
-    json.dump(config, open(path.join(config['output_dir'], config['prefix'] + '_config.json'), 'w'), indent=1)
 
 if __name__ == '__main__':
     main( )

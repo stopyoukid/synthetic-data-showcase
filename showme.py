@@ -3,7 +3,7 @@ import json
 import pandas as pd
 from urllib import request
 from os import path, mkdir
-from showcase import runPipeline
+from synthetic_data import runPipeline
 
 def main():
     logging.basicConfig(format="%(funcName)s: %(message)s", level=logging.INFO)

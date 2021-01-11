@@ -2,6 +2,7 @@
 german_credit_showcase/
 credit_config.json
 *data*/
+!/synthetic_data
 *output*/
 
 # Byte-compiled / optimized / DLL files

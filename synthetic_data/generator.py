@@ -9,7 +9,7 @@ from math import ceil
 from collections import defaultdict, Counter
 from itertools import chain
 from random import random, shuffle
-import util as util
+import synthetic_data.utils as util
 
 
 def generate(config):
@@ -20,32 +20,51 @@ def generate(config):
     Args:
         config: options from the json config file, else default values.
     """
-
     use_columns = config['use_columns']
-    parallel_jobs = config['parallel_jobs']
-    record_limit = config['record_limit']
     sensitive_microdata_path = config['sensitive_microdata_path']
     sensitive_microdata_delimiter = config['sensitive_microdata_delimiter']
+    logging.info(f'Generate {sensitive_microdata_path}')
+    record_limit = config['record_limit']
+
+    start_time = time.time() 
+
+    df = util.loadMicrodata(path=sensitive_microdata_path, delimiter=sensitive_microdata_delimiter, record_limit=record_limit, use_columns=use_columns)
+
+    sdf = generate_pandas(config, df)
+    
     synthetic_microdata_path = config['synthetic_microdata_path']
+
+    sdf.to_csv(synthetic_microdata_path, sep = '\t', index=False)
+
+    syn_ratio = config['expansion_ratio']
+
+    logging.info(f'Generated {synthetic_microdata_path} from {sensitive_microdata_path} with synthesis ratio {syn_ratio}, took {datetime.timedelta(seconds = time.time() - start_time)}s')
+
+def generate_pandas(config, data: pd.DataFrame):
+    """Generates synthetic microdata approximiating the sensitive microdata at sensitive_microdata_path.
+
+    Produces the synthetic_microdata pandas dataframe of synthetic records.
+
+    Args:
+        config: options from the json config file, else default values.
+    """
+
+    parallel_jobs = config['parallel_jobs']
     sensitive_zeros = config['sensitive_zeros']
     threshold = config['reporting_threshold']
     precision = config['reporting_precision']
     memory_limit = config['memory_limit_pct']
-    seeded = config['seeded']
+    seeded = config['seeded'] 
 
-    logging.info(f'Generate {sensitive_microdata_path}')
-    start_time = time.time()  
-
-    df = util.loadMicrodata(path=sensitive_microdata_path, delimiter=sensitive_microdata_delimiter, record_limit=record_limit, use_columns=use_columns)
-    columns = df.columns.values 
-    num = len(df)
+    columns = data.columns.values 
+    num = len(data)
     logging.info(f'Prepared data')
     records = []
     
     chunk = ceil(num/(parallel_jobs))
     if seeded:
         logging.info(f'Generating from seeds')
-        row_list = util.genRowList(df=df, sensitive_zeros=sensitive_zeros)
+        row_list = util.genRowList(df=data, sensitive_zeros=sensitive_zeros)
         att_to_ids = util.computeAttToIds(row_list=row_list)
         all_available_atts = defaultdict(int)
         chunks = [row_list[i:i + chunk] for i in range(0, len(row_list), chunk)]
@@ -77,7 +96,7 @@ def generate(config):
     else:
         logging.info(f'Generating unseeded')
         chunks = [chunk for i in range(parallel_jobs)]
-        col_val_ids = util.genColValIdsDict(df, sensitive_zeros)
+        col_val_ids = util.genColValIdsDict(data, sensitive_zeros)
         res = joblib.Parallel(n_jobs=parallel_jobs, backend='loky', verbose=1) (joblib.delayed(synthesizeRowsUnseeded)(chunk, num, columns, col_val_ids, threshold, memory_limit) for chunk in chunks)
         for rows in res:
             records.extend(rows)
@@ -86,13 +105,11 @@ def generate(config):
     records.sort()
     records.sort(key = lambda x : len([y for y in x if y != '']), reverse=True)
 
-    sdf = pd.DataFrame(records, columns = df.columns)
-    syn_ratio = len(sdf) / len(df)
+    sdf = pd.DataFrame(records, columns = data.columns)
+    syn_ratio = len(sdf) / len(data)
     config['expansion_ratio'] = syn_ratio
-    sdf.to_csv(synthetic_microdata_path, sep = '\t', index=False)
 
-    logging.info(f'Generated {synthetic_microdata_path} from {sensitive_microdata_path} with synthesis ratio {syn_ratio}, took {datetime.timedelta(seconds = time.time() - start_time)}s')
-
+    return sdf
 
 def synthesizeRowsSeeded(seeds, num_rows, columns, att_to_ids, threshold, memory_limit):
     """Maps each seed record into a synthetic record.

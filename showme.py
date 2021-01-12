@@ -79,7 +79,7 @@ def main():
         logging.info('Processed')
 
     config = {
-        'parallel_jobs': 1,
+        'parallel_jobs': 4,
         'memory_limit_pct': 90,
         'use_columns': [],
         'record_limit': -1,
@@ -93,7 +93,6 @@ def main():
         'sensitive_microdata_path': sensitive_microdata_path,
         'sensitive_microdata_delimiter': '\t',
         'report_title': 'German Credit Data Showcase',
-
     }
 
     json.dump(config, open(path.join('.', config['prefix'] + '_config.json'), 'w'), indent=1)

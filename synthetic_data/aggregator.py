@@ -6,7 +6,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 from os import path
-import util as util
+import synthetic_data.utils as util
 
 
 def aggregate(config):
@@ -56,7 +56,10 @@ def aggregate(config):
         f.write('\t'.join(['sen_combo_length', 'combo_count', 'rare_count', 'rare_proportion'])+'\n')
         for length, combo_count in len_to_combo_count.items():
             rare_count = len_to_rare_count[length]
-            rare_prop = rare_count / combo_count
+            if combo_count > 0:
+                rare_prop = rare_count / combo_count
+            else:
+                rare_prop = 1
             f.write('\t'.join([str(length), str(combo_count), str(rare_count), str(rare_prop)])+'\n')
 
     util.plotStats(

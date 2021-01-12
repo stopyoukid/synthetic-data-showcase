@@ -8,7 +8,9 @@ import copy
 import logging
 import argparse
 import time
-import util as util
+import synthetic_data.utils as util
+
+script_dir = os.path.dirname(os.path.abspath(__file__))
 
 class Navigator ():
 
@@ -21,7 +23,7 @@ class Navigator ():
         self.synthetic_microdata = '%s/%s_synthetic_microdata.tsv'  %(self.output_dir, self.prefix)
         self.renamed_reportable_aggregates = '%s/rounded_aggregates.tsv' %(self.output_dir)
         self.synthetic_attributes = '%s/synthesized_attributes.tsv' %(self.output_dir)
-        self.template_original_loc = './template/data_showcase.pbit'
+        self.template_original_loc = '%s./../template/data_showcase.pbit' %(script_dir)
         self.temporary_zip_loc = '%s/privatize.zip' %(self.output_dir)
         self.temporary_folder_loc = '%s/privatize' %(self.output_dir)
         self.data_schema_loc = '%s/DataModelSchema' %(self.temporary_folder_loc)

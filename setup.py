@@ -9,12 +9,12 @@ setup(name='synthetic_data_showcase',
       author_email='darren.edge@microsoft.com',
       license='MIT',
       url='https://github.com/microsoft/synthetic-data-showcase',
-      packages=['sythetic_data'],
+      packages=['synthetic_data'],
       install_requires=[
           'pandas==1.2.*',
           'matplotlib==3.2.*',
           'seaborn==0.10.*',
           'psutil==5.7.*',
-          'joblib==0.14.*'
+          'joblib==1.0.*'
       ],
 )

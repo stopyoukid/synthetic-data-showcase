@@ -14,7 +14,7 @@ matplotlib.use('Agg') # fixes matplotlib + joblib bug "RuntimeError: main thread
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 
-def loadMicrodata(path, delimiter, record_limit, use_columns):
+def loadMicrodata(path: str, delimiter: str, record_limit: int = -1, use_columns: list[str] = []) -> pd.DataFrame:
     """Loads delimited microdata with column headers into a pandas dataframe.
 
     Args:
@@ -23,17 +23,25 @@ def loadMicrodata(path, delimiter, record_limit, use_columns):
         record_limit: how many rows to load (-1 loads all rows).
         use_columns: which columns to load.
     """
-    df = pd.read_csv(path, delimiter).astype(str) \
+    return prepareDataframe(pd.read_csv(path, delimiter), record_limit, use_columns)
+
+def prepareDataframe(df: pd.DataFrame, record_limit: int = -1, use_columns: list[str] = []) -> pd.DataFrame:
+    """Loads delimited microdata with column headers into a pandas dataframe.
+
+    Args:
+        record_limit: how many rows to load (-1 loads all rows).
+        use_columns: which columns to load.
+    """
+    prepared = df.astype(str) \
         .replace(to_replace=r'^nan$', value='', regex=True) \
         .replace(to_replace=r'\.0$', value='', regex=True) \
         .replace(to_replace=';', value='.,', regex=False) \
         .replace(to_replace=':', value='..', regex=False)  # fix pandas type coercion for numbers and remove reserved delimiters
-    if use_columns != []:
-        df = df[use_columns]
-    if record_limit > 0:
-        df = df[:record_limit]
-    return df
-
+    if use_columns != None and use_columns != []:
+        prepared = prepared[use_columns]
+    if record_limit != None and record_limit > 0:
+        prepared = prepared[:record_limit]
+    return prepared
 
 def genRowList(df, sensitive_zeros):
     """Converts a dataframe to a list of rows.

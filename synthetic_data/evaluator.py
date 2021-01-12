@@ -4,7 +4,7 @@ import logging
 from os import path
 from collections import defaultdict
 import pandas as pd
-import util as util
+import synthetic_data.utils as util
 
 def evaluate(config):
     """Evaluates the error in the synthetic microdata with respect to the sensitive microdata.

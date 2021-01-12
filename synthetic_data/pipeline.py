@@ -3,6 +3,7 @@ from synthetic_data.evaluator import evaluate
 from synthetic_data.aggregator import aggregate
 from synthetic_data.navigator import Navigator
 import json
+import logging
 
 from os import path
 
